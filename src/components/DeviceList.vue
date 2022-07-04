@@ -125,8 +125,10 @@ import { Map } from 'immutable'
 import { remote } from 'electron'
 import { WebSocketApi } from '@/lib/api/ws.js'
 import { HttpApi } from '@/lib/api/http.js'
+import broadcastAddress from 'broadcast-address'
 import dgram from 'dgram'
 import ip from 'ip'
+import os from 'os'
 
 export default {
   mounted() {
@@ -317,7 +319,19 @@ export default {
             this.localAdd(info.address)
           }
         })
-        client.send('touchelf', 14099, '255.255.255.255')
+
+        const globalBroadcastAddr = '255.255.255.255'
+        client.send('touchelf', 14099, globalBroadcastAddr)
+
+        for (const [ifname, addresses] of Object.entries(os.networkInterfaces())) {
+          if (ifname.startsWith("en")) {
+            addresses.forEach((address) => {
+              if (address.family === "IPv4" && !address.address.startsWith("169.254.")) {
+                client.send('touchelf', 14099, broadcastAddress(ifname))
+              }
+            })
+          }
+        }
       })
       client.bind()
     },
