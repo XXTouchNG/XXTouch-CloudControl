@@ -312,7 +312,7 @@ export default {
         client.setBroadcast(true)
         client.on('message', (data, info) => {
           if (
-            data.toString() === 'touchelf' &&
+            data.toString().startsWith('touchelf') &&
             !this.clients.has(info.address)
           ) {
             this.$message.info(`发现设备 ${info.address}, 连接中...`)
